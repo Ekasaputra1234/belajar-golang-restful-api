@@ -1,32 +1,35 @@
 package main
 
 import (
+	"log"
 	"net/http"
-	"programmerzamannow/belajar-golang-restful-api/app"
-	"programmerzamannow/belajar-golang-restful-api/controller"
-	"programmerzamannow/belajar-golang-restful-api/helper"
-	"programmerzamannow/belajar-golang-restful-api/middleware"
-	"programmerzamannow/belajar-golang-restful-api/repository"
-	"programmerzamannow/belajar-golang-restful-api/service"
 
 	"github.com/go-playground/validator/v10"
-	_ "github.com/go-sql-driver/mysql"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+	"gitlab.com/voltunes/api-master-project/app"
+	"gitlab.com/voltunes/api-master-project/helper"
 )
 
 func main() {
-
-	db := app.NewDB()
-	validate := validator.New()
-	productRepository := repository.NewProductRepository()
-	productService := service.NewProductService(productRepository, db, validate)
-	productController := controller.NewProductController(productService)
-	router := app.NewRouter(productController)
-
-	server := http.Server{
-		Addr:    "localhost:3000",
-		Handler: middleware.NewAuthMiddleware(router),
+	configuration, err := goHelper.LoadConfig()
+	if err != nil {
+		log.Fatalln("Failed at config", err)
 	}
 
-	err := server.ListenAndServe()
+	port := configuration.Port
+	db := app.ConnectDatabase(configuration)
+
+	// Validator
+	validate := validator.New()
+	helper.RegisterValidation(validate)
+
+	router := app.NewRouter(db, validate)
+	server := http.Server{
+		Addr:    ":" + port,
+		Handler: router,
+	}
+	log.Printf("Server is running on port %s", port)
+
+	err = server.ListenAndServe()
 	helper.PanicIfError(err)
 }

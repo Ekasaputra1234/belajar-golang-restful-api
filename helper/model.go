@@ -1,21 +1,35 @@
 package helper
 
 import (
-	"programmerzamannow/belajar-golang-restful-api/model/domain"
-	"programmerzamannow/belajar-golang-restful-api/model/web"
+	"reflect"
 )
 
-func ToProductResponse(product domain.Product) web.ProductResponse {
-	return web.ProductResponse{
-		Id:   product.Id,
-		Name: product.Name,
+func GetJSONFields(i interface{}) []string {
+	fields := []string{}
+
+	val := reflect.ValueOf(i)
+	for i := 0; i < val.Type().NumField(); i++ {
+		fields = append(fields, val.Type().Field(i).Tag.Get("json"))
 	}
+	return fields
 }
 
-func ToProductResponses(products []domain.Product) []web.ProductResponse {
-	var productResponses []web.ProductResponse
-	for _, product := range products {
-		productResponses = append(productResponses, ToProductResponse(product))
+func MessageDataFoundOrNot(data interface{}) string {
+	s := reflect.ValueOf(data)
+
+	if s.Kind() == reflect.Slice {
+		if s.Len() > 0 {
+			return "Record found"
+		} else {
+			return "Record not found"
+		}
 	}
-	return productResponses
+	if s.Kind() == reflect.Struct {
+		return "Record found"
+	}
+	if data == nil {
+		return "Record not found"
+	}
+	panic("MessageData FoundOrNor() given parameter must be slice or struct")
+
 }

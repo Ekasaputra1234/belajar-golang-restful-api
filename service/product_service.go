@@ -1,14 +1,15 @@
 package service
 
 import (
-	"context"
-	"programmerzamannow/belajar-golang-restful-api/model/web"
+	"github.com/gin-gonic/gin"
+	"gitlab.com/voltunes/api-master-project/auth"
+	"gitlab.com/voltunes/api-master-project/model/web"
 )
 
 type ProductService interface {
-	Create(ctx context.Context, request web.ProductCreateRequest) web.ProductResponse
-	Update(ctx context.Context, request web.ProductUpdateRequest) web.ProductResponse
-	Delete(ctx context.Context, productId int)
-	FindById(ctx context.Context, productId int) web.ProductResponse
-	FindAll(ctx context.Context) []web.ProductResponse
+	Create(auth *auth.AccessDetails, request *web.ProductCreateRequest, c *gin.Context) web.ProductResponse
+	Delete(auth *auth.AccessDetails, id *int, c *gin.Context)
+	Update(auth *auth.AccessDetails, id *int, request *web.ProductUpdateRequest, c *gin.Context) web.ProductResponse
+	FindAll(auth *auth.AccessDetails, filters *map[string]string, c *gin.Context) []web.ProductResponse
+	FindByID(auth *auth.AccessDetails, id *int, c *gin.Context) web.ProductResponse
 }

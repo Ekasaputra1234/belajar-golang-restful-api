@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"programmerzamannow/belajar-golang-restful-api/helper"
-	"programmerzamannow/belajar-golang-restful-api/model/domain"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+	"gitlab.com/voltunes/api-master-project/helper"
+	"gitlab.com/voltunes/api-master-project/model/domain"
+
+	"gorm.io/gorm"
 )
 
 type ProductRepositoryImpl struct {
@@ -15,60 +15,48 @@ func NewProductRepository() ProductRepository {
 	return &ProductRepositoryImpl{}
 }
 
-func (repository *ProductRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, product domain.Product) domain.Product {
-	SQL := "insert into product(name) values (?)"
-	result, err := tx.ExecContext(ctx, SQL, product.Name)
+func (repository *ProductRepositoryImpl) FindAll(db *goHelper.DatabaseResolver, filters *map[string]string) domain.Products {
+	products := domain.Products{}
+	tx := db.Read.Table("products")
+
+	err := helper.ApplyFilter(tx, filters)
 	helper.PanicIfError(err)
 
-	id, err := result.LastInsertId()
+	err = tx.Find(&products).Error
 	helper.PanicIfError(err)
 
-	product.Id = int(id)
-	return product
-}
-
-func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, product domain.Product) domain.Product {
-	SQL := "update product set name = ? where id = ?"
-	_, err := tx.ExecContext(ctx, SQL, product.Name, product.Id)
-	helper.PanicIfError(err)
-
-	return product
-}
-
-func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, product domain.Product) {
-	SQL := "delete from product where id = ?"
-	_, err := tx.ExecContext(ctx, SQL, product.Id)
-	helper.PanicIfError(err)
-}
-
-func (repository *ProductRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, productId int) (domain.Product, error) {
-	SQL := "select id, name from product where id = ?"
-	rows, err := tx.QueryContext(ctx, SQL, productId)
-	helper.PanicIfError(err)
-	defer rows.Close()
-
-	product := domain.Product{}
-	if rows.Next() {
-		err := rows.Scan(&product.Id, &product.Name)
-		helper.PanicIfError(err)
-		return product, nil
-	} else {
-		return product, errors.New("product is not found")
-	}
-}
-
-func (repository *ProductRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []domain.Product {
-	SQL := "select id, name from product"
-	rows, err := tx.QueryContext(ctx, SQL)
-	helper.PanicIfError(err)
-	defer rows.Close()
-
-	var products []domain.Product
-	for rows.Next() {
-		product := domain.Product{}
-		err := rows.Scan(&product.Id, &product.Name)
-		helper.PanicIfError(err)
-		products = append(products, product)
-	}
 	return products
+}
+
+func (repository *ProductRepositoryImpl) Create(db *goHelper.DatabaseResolver, product *domain.Product) *domain.Product {
+	err := db.Write.Create(&product).Error
+	helper.PanicIfError(err)
+	return product
+}
+
+func (repository *ProductRepositoryImpl) Delete(db *goHelper.DatabaseResolver, id *int, deletedByID *string) {
+	err := db.Read.First(&domain.Product{}, id).Error
+	helper.PanicIfError(err)
+
+	err = db.Write.Updates(
+		&domain.Product{
+			Model:       gorm.Model{ID: uint(*id)},
+			DeletedByID: deletedByID,
+		},
+	).Delete(&domain.Product{}, id).Error
+	helper.PanicIfError(err)
+}
+
+func (repository *ProductRepositoryImpl) Update(db *goHelper.DatabaseResolver, product *domain.Product) *domain.Product {
+	err := db.Write.Table("products").Where("id = ?", product.ID).Updates(&product).First(&product).Error
+	helper.PanicIfError(err)
+
+	return product
+}
+
+func (repository *ProductRepositoryImpl) FindByID(db *goHelper.DatabaseResolver, id *int) domain.Product {
+	var product domain.Product
+	err := db.Read.Table("products").Where("products.id = ?", id).First(&product).Error
+	helper.PanicIfError(err)
+	return product
 }

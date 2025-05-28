@@ -1,19 +1,28 @@
 package app
 
 import (
-	"database/sql"
-	"programmerzamannow/belajar-golang-restful-api/helper"
-	"time"
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+
+	"gorm.io/gorm"
 )
 
-func NewDB() *sql.DB {
-	db, err := sql.Open("mysql", "root@tcp(localhost:3306)/belajar_golang_restful_api")
-	helper.PanicIfError(err)
+func ConnectDatabase(configuration goHelper.Configuration) *gorm.DB {
+	database := goHelper.ConnectMysqlDatabaseResolver(configuration)
 
-	db.SetMaxIdleConns(5)
-	db.SetMaxOpenConns(20)
-	db.SetConnMaxLifetime(60 * time.Minute)
-	db.SetConnMaxIdleTime(10 * time.Minute)
+	if err := database.Use(otelgorm.NewPlugin()); err != nil {
+		panic(err)
+	}
 
-	return db
+	err := database.AutoMigrate(
+	// &domain.Product{},
+	// &domain.ProductProduct{},
+	// &domain.ProductTask{},
+	// &domain.ProductTaskDetail{},
+	)
+	if err != nil {
+		panic("failed to auto migrate schema")
+	}
+
+	return database
 }

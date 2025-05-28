@@ -1,22 +1,40 @@
 package app
 
 import (
-	"programmerzamannow/belajar-golang-restful-api/controller"
-	"programmerzamannow/belajar-golang-restful-api/exception"
+	"time"
 
-	"github.com/julienschmidt/httprouter"
+	helperLogger "gitlab.com/VNEU/logger/helper"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+	"gitlab.com/voltunes/api-master-project/helper"
+	"gitlab.com/voltunes/api-master-project/route"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"gorm.io/gorm"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
-func NewRouter(productController controller.ProductController) *httprouter.Router {
-	router := httprouter.New()
+func NewRouter(db *gorm.DB, validate *validator.Validate) *gin.Engine {
+	serviceName := "GO-VISIT-FLOW"
+	goHelper.InitTracer(serviceName)
+	router := gin.Default()
+	router.Use(otelgin.Middleware(serviceName))
+	router.Use(helperLogger.LoggerHandler())
+	router.Use(helperLogger.ErrorHandler(helper.DatabaseErrors))
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "PATCH"},
+		AllowHeaders:     []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "https://github.com"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 
-	router.GET("/api/products", productController.FindAll)
-	router.GET("/api/products/:productId", productController.FindById)
-	router.POST("/api/products", productController.Create)
-	router.PUT("/api/products/:productId", productController.Update)
-	router.DELETE("/api/products/:productId", productController.Delete)
-
-	router.PanicHandler = exception.ErrorHandler
+	route.ProductRoute(router, db, validate)
 
 	return router
 }

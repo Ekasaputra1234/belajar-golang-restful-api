@@ -1,5 +1,8 @@
 package web
 
 type ProductCreateRequest struct {
-	Name string `validate:"required,min=1,max=100" json:"name"`
+	// Fields
+	Name             string `json:"name"`
+	JumlahPeliharaan uint   `json:"jumlah_peliharaan" validate:"gt=0"`
+	UnitID           string `json:"unit_id"`
 }

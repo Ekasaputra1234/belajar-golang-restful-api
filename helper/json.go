@@ -3,10 +3,12 @@ package helper
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func ReadFromRequestBody(request *http.Request, result interface{}) {
-	decoder := json.NewDecoder(request.Body)
+func ReadFromRequestBody(c *gin.Context, result interface{}) {
+	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(result)
 	PanicIfError(err)
 }

@@ -2,12 +2,14 @@ package controller
 
 import (
 	"net/http"
-	"programmerzamannow/belajar-golang-restful-api/helper"
-	"programmerzamannow/belajar-golang-restful-api/model/web"
-	"programmerzamannow/belajar-golang-restful-api/service"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
+	"gitlab.com/voltunes/api-master-project/auth"
+	"gitlab.com/voltunes/api-master-project/helper"
+	"gitlab.com/voltunes/api-master-project/model/web"
+	"gitlab.com/voltunes/api-master-project/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ProductControllerImpl struct {
@@ -20,76 +22,75 @@ func NewProductController(productService service.ProductService) ProductControll
 	}
 }
 
-func (controller *ProductControllerImpl) Create(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productCreateRequest := web.ProductCreateRequest{}
-	helper.ReadFromRequestBody(request, &productCreateRequest)
-
-	productResponse := controller.ProductService.Create(request.Context(), productCreateRequest)
+func (controller *ProductControllerImpl) FindAll(c *gin.Context, auth *auth.AccessDetails) {
+	filters := helper.FilterFromQueryString(c, "unit_id.eq")
+	productResponses := controller.ProductService.FindAll(auth, &filters, c)
 	webResponse := web.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   productResponse,
+		Success: true,
+		Message: helper.MessageDataFoundOrNot(productResponses),
+		Data:    productResponses,
 	}
 
-	helper.WriteToResponseBody(writer, webResponse)
+	c.JSON(http.StatusOK, webResponse)
 }
 
-func (controller *ProductControllerImpl) Update(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productUpdateRequest := web.ProductUpdateRequest{}
-	helper.ReadFromRequestBody(request, &productUpdateRequest)
-
-	productId := params.ByName("productId")
-	id, err := strconv.Atoi(productId)
+func (controller *ProductControllerImpl) FindByID(c *gin.Context, auth *auth.AccessDetails) {
+	paramID := c.Param("id")
+	productID, err := strconv.Atoi(paramID)
 	helper.PanicIfError(err)
 
-	productUpdateRequest.Id = id
-
-	productResponse := controller.ProductService.Update(request.Context(), productUpdateRequest)
+	productResponse := controller.ProductService.FindByID(auth, &productID, c)
 	webResponse := web.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   productResponse,
+		Success: true,
+		Message: helper.MessageDataFoundOrNot(productResponse),
+		Data:    productResponse,
 	}
 
-	helper.WriteToResponseBody(writer, webResponse)
+	c.JSON(http.StatusOK, webResponse)
 }
 
-func (controller *ProductControllerImpl) Delete(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productId := params.ByName("productId")
-	id, err := strconv.Atoi(productId)
+func (controller *ProductControllerImpl) Create(c *gin.Context, auth *auth.AccessDetails) {
+	request := web.ProductCreateRequest{}
+	helper.ReadFromRequestBody(c, &request)
+
+	productResponse := controller.ProductService.Create(auth, &request, c)
+	webResponse := web.WebResponse{
+		Success: true,
+		Message: "Product created successfully",
+		Data:    productResponse,
+	}
+
+	c.JSON(http.StatusOK, webResponse)
+}
+
+func (controller *ProductControllerImpl) Update(c *gin.Context, auth *auth.AccessDetails) {
+	paramID := c.Param("id")
+	productID, err := strconv.Atoi(paramID)
 	helper.PanicIfError(err)
 
-	controller.ProductService.Delete(request.Context(), id)
+	request := web.ProductUpdateRequest{}
+	helper.ReadFromRequestBody(c, &request)
+
+	productResponse := controller.ProductService.Update(auth, &productID, &request, c)
 	webResponse := web.WebResponse{
-		Code:   200,
-		Status: "OK",
+		Success: true,
+		Message: "Product updated successfully",
+		Data:    productResponse,
 	}
 
-	helper.WriteToResponseBody(writer, webResponse)
+	c.JSON(http.StatusOK, webResponse)
 }
 
-func (controller *ProductControllerImpl) FindById(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productId := params.ByName("productId")
-	id, err := strconv.Atoi(productId)
+func (controller *ProductControllerImpl) Delete(c *gin.Context, auth *auth.AccessDetails) {
+	paramID := c.Param("id")
+	productID, err := strconv.Atoi(paramID)
 	helper.PanicIfError(err)
 
-	productResponse := controller.ProductService.FindById(request.Context(), id)
+	controller.ProductService.Delete(auth, &productID, c)
 	webResponse := web.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   productResponse,
+		Success: true,
+		Message: "Product deleted successfully",
 	}
 
-	helper.WriteToResponseBody(writer, webResponse)
-}
-
-func (controller *ProductControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productResponses := controller.ProductService.FindAll(request.Context())
-	webResponse := web.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   productResponses,
-	}
-
-	helper.WriteToResponseBody(writer, webResponse)
+	c.JSON(http.StatusOK, webResponse)
 }

@@ -1,100 +1,104 @@
 package service
 
 import (
-	"context"
-	"database/sql"
-	"programmerzamannow/belajar-golang-restful-api/exception"
-	"programmerzamannow/belajar-golang-restful-api/helper"
-	"programmerzamannow/belajar-golang-restful-api/model/domain"
-	"programmerzamannow/belajar-golang-restful-api/model/web"
-	"programmerzamannow/belajar-golang-restful-api/repository"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+	"gitlab.com/voltunes/api-master-project/auth"
+	"gitlab.com/voltunes/api-master-project/helper"
+	"gitlab.com/voltunes/api-master-project/model/domain"
+	"gitlab.com/voltunes/api-master-project/model/web"
+	"gitlab.com/voltunes/api-master-project/repository"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 type ProductServiceImpl struct {
 	ProductRepository repository.ProductRepository
-	DB                *sql.DB
+	DB                *gorm.DB
 	Validate          *validator.Validate
 }
 
-func NewProductService(productRepository repository.ProductRepository, DB *sql.DB, validate *validator.Validate) ProductService {
+func NewProductService(
+	city repository.ProductRepository,
+	db *gorm.DB,
+	validate *validator.Validate,
+) ProductService {
 	return &ProductServiceImpl{
-		ProductRepository: productRepository,
-		DB:                DB,
+		ProductRepository: city,
+		DB:                db,
 		Validate:          validate,
 	}
 }
 
-func (service *ProductServiceImpl) Create(ctx context.Context, request web.ProductCreateRequest) web.ProductResponse {
+func (service *ProductServiceImpl) FindAll(auth *auth.AccessDetails, filters *map[string]string, c *gin.Context) []web.ProductResponse {
+	goHelper.SignozSpan("project_template", c)
+
+	tx := goHelper.CreateTransaction(service.DB, c)
+	defer goHelper.CommitOrRollback(tx.Write)
+
+	products := service.ProductRepository.FindAll(tx, filters)
+	return products.ToProductResponses()
+}
+
+func (service *ProductServiceImpl) Create(auth *auth.AccessDetails, request *web.ProductCreateRequest, c *gin.Context) web.ProductResponse {
 	err := service.Validate.Struct(request)
 	helper.PanicIfError(err)
 
-	tx, err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
+	goHelper.SignozSpan("project_template", c)
 
-	product := domain.Product{
-		Name: request.Name,
+	tx := goHelper.CreateTransaction(service.DB, c)
+	defer goHelper.CommitOrRollback(tx.Write)
+
+	city := &domain.Product{
+		// Required Fields
+		CreatedByID: auth.UserID,
+		UpdatedByID: auth.UserID,
+
+		// Fields
+		Name:             request.Name,
+		JumlahPeliharaan: request.JumlahPeliharaan,
+		UnitID:           request.UnitID,
 	}
+	city = service.ProductRepository.Create(tx, city)
 
-	product = service.ProductRepository.Save(ctx, tx, product)
-
-	return helper.ToProductResponse(product)
+	return city.ToProductResponse()
 }
 
-func (service *ProductServiceImpl) Update(ctx context.Context, request web.ProductUpdateRequest) web.ProductResponse {
-	err := service.Validate.Struct(request)
-	helper.PanicIfError(err)
+func (service *ProductServiceImpl) Delete(auth *auth.AccessDetails, id *int, c *gin.Context) {
+	goHelper.SignozSpan("project_template", c)
 
-	tx, err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
-
-	product, err := service.ProductRepository.FindById(ctx, tx, request.Id)
-	if err != nil {
-		panic(exception.NewNotFoundError(err.Error()))
-	}
-
-	product.Name = request.Name
-
-	product = service.ProductRepository.Update(ctx, tx, product)
-
-	return helper.ToProductResponse(product)
+	tx := goHelper.CreateTransaction(service.DB, c)
+	defer goHelper.CommitOrRollback(tx.Write)
+	service.ProductRepository.Delete(tx, id, &auth.UserID)
 }
 
-func (service *ProductServiceImpl) Delete(ctx context.Context, productId int) {
-	tx, err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
+func (service *ProductServiceImpl) Update(auth *auth.AccessDetails, id *int, request *web.ProductUpdateRequest, c *gin.Context) web.ProductResponse {
+	goHelper.SignozSpan("project_template", c)
 
-	product, err := service.ProductRepository.FindById(ctx, tx, productId)
-	if err != nil {
-		panic(exception.NewNotFoundError(err.Error()))
+	tx := goHelper.CreateTransaction(service.DB, c)
+	defer goHelper.CommitOrRollback(tx.Write)
+
+	subject := &domain.Product{
+		// Required Fields
+		Model:       gorm.Model{ID: uint(*id)},
+		UpdatedByID: auth.UserID,
+
+		//  Fields
+		Name:             request.Name,
+		JumlahPeliharaan: request.JumlahPeliharaan,
+		UnitID:           request.UnitID,
 	}
-
-	service.ProductRepository.Delete(ctx, tx, product)
+	subject = service.ProductRepository.Update(tx, subject)
+	return subject.ToProductResponse()
 }
 
-func (service *ProductServiceImpl) FindById(ctx context.Context, productId int) web.ProductResponse {
-	tx, err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
+func (service *ProductServiceImpl) FindByID(auth *auth.AccessDetails, id *int, c *gin.Context) web.ProductResponse {
+	goHelper.SignozSpan("project_template", c)
 
-	product, err := service.ProductRepository.FindById(ctx, tx, productId)
-	if err != nil {
-		panic(exception.NewNotFoundError(err.Error()))
-	}
+	tx := goHelper.CreateTransaction(service.DB, c)
+	defer goHelper.CommitOrRollback(tx.Write)
 
-	return helper.ToProductResponse(product)
-}
-
-func (service *ProductServiceImpl) FindAll(ctx context.Context) []web.ProductResponse {
-	tx, err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
-
-	products := service.ProductRepository.FindAll(ctx, tx)
-
-	return helper.ToProductResponses(products)
+	product := service.ProductRepository.FindByID(tx, id)
+	return product.ToProductResponse()
 }

@@ -1,15 +1,14 @@
 package repository
 
 import (
-	"context"
-	"database/sql"
-	"programmerzamannow/belajar-golang-restful-api/model/domain"
+	goHelper "gitlab.com/vneu/go-helper/helper"
+	"gitlab.com/voltunes/api-master-project/model/domain"
 )
 
 type ProductRepository interface {
-	Save(ctx context.Context, tx *sql.Tx, product domain.Product) domain.Product
-	Update(ctx context.Context, tx *sql.Tx, product domain.Product) domain.Product
-	Delete(ctx context.Context, tx *sql.Tx, product domain.Product)
-	FindById(ctx context.Context, tx *sql.Tx, productId int) (domain.Product, error)
-	FindAll(ctx context.Context, tx *sql.Tx) []domain.Product
+	Create(db *goHelper.DatabaseResolver, product *domain.Product) *domain.Product
+	Delete(db *goHelper.DatabaseResolver, id *int, deletedByID *string)
+	FindAll(db *goHelper.DatabaseResolver, filters *map[string]string) domain.Products
+	FindByID(db *goHelper.DatabaseResolver, id *int) domain.Product
+	Update(db *goHelper.DatabaseResolver, product *domain.Product) *domain.Product
 }
