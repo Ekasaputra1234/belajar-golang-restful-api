@@ -1,6 +1,6 @@
 package domain
 
-type Category struct {
+type Product struct {
 	Id   int
 	Name string
 }

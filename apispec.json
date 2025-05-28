@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Category RESTful API",
-    "description": "API Spec for Category RESTful API",
+    "title": "Product RESTful API",
+    "description": "API Spec for Product RESTful API",
     "version": "1.0.0"
   },
   "servers": [
@@ -11,19 +11,21 @@
     }
   ],
   "paths": {
-    "/categories": {
+    "/products": {
       "get": {
-        "security": [{
-          "CategoryAuth" : []
-        }],
-        "tags": [
-          "Category API"
+        "security": [
+          {
+            "ProductAuth": []
+          }
         ],
-        "description": "List all Categories",
-        "summary": "List all Categories",
+        "tags": [
+          "Product API"
+        ],
+        "description": "List all Products",
+        "summary": "List all Products",
         "responses": {
           "200": {
-            "description": "Success get all categories",
+            "description": "Success get all products",
             "content": {
               "application/json": {
                 "schema": {
@@ -38,7 +40,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Category"
+                        "$ref": "#/components/schemas/Product"
                       }
                     }
                   }
@@ -49,37 +51,41 @@
         }
       },
       "post": {
-        "security": [{
-          "CategoryAuth" : []
-        }],
-        "tags": ["Category API"],
-        "description": "Create new Category",
-        "summary": "Create new Category",
+        "security": [
+          {
+            "ProductAuth": []
+          }
+        ],
+        "tags": [
+          "Product API"
+        ],
+        "description": "Create new Product",
+        "summary": "Create new Product",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrUpdateCategory"
+                "$ref": "#/components/schemas/CreateOrUpdateProduct"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success Create Category",
+            "description": "Success Create Product",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "code" : {
+                    "code": {
                       "type": "number"
                     },
-                    "status" : {
+                    "status": {
                       "type": "string"
                     },
-                    "data" : {
-                      "$ref": "#/components/schemas/Category"
+                    "data": {
+                      "$ref": "#/components/schemas/Product"
                     }
                   }
                 }
@@ -89,37 +95,41 @@
         }
       }
     },
-    "/categories/{categoryId}" : {
-      "get" : {
-        "security": [{
-          "CategoryAuth" : []
-        }],
-        "tags": ["Category API"],
-        "summary": "Get category by Id",
-        "description": "Get category by id",
+    "/products/{productId}": {
+      "get": {
+        "security": [
+          {
+            "ProductAuth": []
+          }
+        ],
+        "tags": [
+          "Product API"
+        ],
+        "summary": "Get product by Id",
+        "description": "Get product by id",
         "parameters": [
           {
-            "name": "categoryId",
+            "name": "productId",
             "in": "path",
-            "description": "Category Id"
+            "description": "Product Id"
           }
         ],
         "responses": {
-          "200" : {
-            "description": "Success get category",
+          "200": {
+            "description": "Success get product",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "code" : {
+                    "code": {
                       "type": "number"
                     },
-                    "status" : {
+                    "status": {
                       "type": "string"
                     },
-                    "data" : {
-                      "$ref": "#/components/schemas/Category"
+                    "data": {
+                      "$ref": "#/components/schemas/Product"
                     }
                   }
                 }
@@ -128,45 +138,49 @@
           }
         }
       },
-      "put" : {
-        "security": [{
-          "CategoryAuth" : []
-        }],
-        "tags": ["Category API"],
-        "summary": "Update category by Id",
-        "description": "Update category by Id",
+      "put": {
+        "security": [
+          {
+            "ProductAuth": []
+          }
+        ],
+        "tags": [
+          "Product API"
+        ],
+        "summary": "Update product by Id",
+        "description": "Update product by Id",
         "parameters": [
           {
-            "name": "categoryId",
+            "name": "productId",
             "in": "path",
-            "description": "Category Id"
+            "description": "Product Id"
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrUpdateCategory"
+                "$ref": "#/components/schemas/CreateOrUpdateProduct"
               }
             }
           }
         },
         "responses": {
-          "200" : {
-            "description": "Success get category",
+          "200": {
+            "description": "Success get product",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "code" : {
+                    "code": {
                       "type": "number"
                     },
-                    "status" : {
+                    "status": {
                       "type": "string"
                     },
-                    "data" : {
-                      "$ref": "#/components/schemas/Category"
+                    "data": {
+                      "$ref": "#/components/schemas/Product"
                     }
                   }
                 }
@@ -176,31 +190,35 @@
         }
       },
       "delete": {
-        "security": [{
-          "CategoryAuth" : []
-        }],
-        "tags": ["Category API"],
-        "summary": "Delete category by Id",
-        "description": "Delete category by id",
+        "security": [
+          {
+            "ProductAuth": []
+          }
+        ],
+        "tags": [
+          "Product API"
+        ],
+        "summary": "Delete product by Id",
+        "description": "Delete product by id",
         "parameters": [
           {
-            "name": "categoryId",
+            "name": "productId",
             "in": "path",
-            "description": "Category Id"
+            "description": "Product Id"
           }
         ],
         "responses": {
-          "200" : {
-            "description": "Success delete category",
+          "200": {
+            "description": "Success delete product",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "code" : {
+                    "code": {
                       "type": "number"
                     },
-                    "status" : {
+                    "status": {
                       "type": "string"
                     }
                   }
@@ -214,15 +232,15 @@
   },
   "components": {
     "securitySchemes": {
-      "CategoryAuth" : {
+      "ProductAuth": {
         "type": "apiKey",
-        "in" : "header",
+        "in": "header",
         "name": "X-API-Key",
-        "description": "Authentication for Category API"
+        "description": "Authentication for Product API"
       }
     },
     "schemas": {
-      "CreateOrUpdateCategory" : {
+      "CreateOrUpdateProduct": {
         "type": "object",
         "properties": {
           "name": {
@@ -230,7 +248,7 @@
           }
         }
       },
-      "Category" : {
+      "Product": {
         "type": "object",
         "properties": {
           "id": {

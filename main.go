@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/go-playground/validator/v10"
-	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"programmerzamannow/belajar-golang-restful-api/app"
 	"programmerzamannow/belajar-golang-restful-api/controller"
@@ -10,16 +8,19 @@ import (
 	"programmerzamannow/belajar-golang-restful-api/middleware"
 	"programmerzamannow/belajar-golang-restful-api/repository"
 	"programmerzamannow/belajar-golang-restful-api/service"
+
+	"github.com/go-playground/validator/v10"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
 
 	db := app.NewDB()
 	validate := validator.New()
-	categoryRepository := repository.NewCategoryRepository()
-	categoryService := service.NewCategoryService(categoryRepository, db, validate)
-	categoryController := controller.NewCategoryController(categoryService)
-	router := app.NewRouter(categoryController)
+	productRepository := repository.NewProductRepository()
+	productService := service.NewProductService(productRepository, db, validate)
+	productController := controller.NewProductController(productService)
+	router := app.NewRouter(productController)
 
 	server := http.Server{
 		Addr:    "localhost:3000",
