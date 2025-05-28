@@ -56,9 +56,10 @@ func (service *ProductServiceImpl) Create(auth *auth.AccessDetails, request *web
 		UpdatedByID: auth.UserID,
 
 		// Fields
-		Name:             request.Name,
-		JumlahPeliharaan: request.JumlahPeliharaan,
-		UnitID:           request.UnitID,
+		Name:     request.Name,
+		Price:    request.Price,
+		Stock:    request.Stock,
+		Category: request.Category,
 	}
 	city = service.ProductRepository.Create(tx, city)
 
@@ -85,9 +86,10 @@ func (service *ProductServiceImpl) Update(auth *auth.AccessDetails, id *int, req
 		UpdatedByID: auth.UserID,
 
 		//  Fields
-		Name:             request.Name,
-		JumlahPeliharaan: request.JumlahPeliharaan,
-		UnitID:           request.UnitID,
+		Name:     request.Name,
+		Price:    request.Price,
+		Stock:    request.Stock,
+		Category: request.Category,
 	}
 	subject = service.ProductRepository.Update(tx, subject)
 	return subject.ToProductResponse()

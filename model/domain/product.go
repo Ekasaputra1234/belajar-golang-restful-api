@@ -15,9 +15,10 @@ type Product struct {
 	DeletedByID *string `gorm:""`
 
 	// Fields
-	Name             string `gorm:""`
-	JumlahPeliharaan uint   `gorm:""`
-	UnitID           string `gorm:"index;size:100"`
+	Name     string  `gorm:""`
+	Price    float64 `gorm:""`
+	Stock    int     `gorm:""`
+	Category string  `gorm:""`
 
 	//Linked Foreign Key
 }
@@ -28,9 +29,10 @@ func (product *Product) ToProductResponse() web.ProductResponse {
 		ID: product.ID,
 
 		// Fields
-		Name:             product.Name,
-		JumlahPeliharaan: product.JumlahPeliharaan,
-		UnitID:           product.UnitID,
+		Name:     product.Name,
+		Price:    product.Price,
+		Stock:    product.Stock,
+		Category: product.Category,
 	}
 }
 

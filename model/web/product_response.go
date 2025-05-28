@@ -5,16 +5,8 @@ type ProductResponse struct {
 	ID uint `json:"id"`
 
 	// Fields
-	Name             string `json:"name"`
-	JumlahPeliharaan uint   `json:"jumlah_peliharaan" validate:"gt=0"`
-	UnitID           string `json:"unit_id"`
-}
-
-type ProductShortResponse struct {
-	// Required Fields
-	ID uint `json:"id"`
-
-	// Fields
-	Name             string `json:"name"`
-	JumlahPeliharaan uint   `json:"jumlah_peliharaan" validate:"gt=0"`
+	Name     string  `json:"name"`
+	Price    float64 `json:"price"`
+	Stock    int     `json:"stock"`
+	Category string  `json:"category"`
 }
