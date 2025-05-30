@@ -32,7 +32,7 @@ func NewProductService(
 }
 
 func (service *ProductServiceImpl) FindAll(auth *auth.AccessDetails, filters *map[string]string, c *gin.Context) []web.ProductResponse {
-	goHelper.SignozSpan("project_template", c)
+	goHelper.SignozSpan("product", c)
 
 	tx := goHelper.CreateTransaction(service.DB, c)
 	defer goHelper.CommitOrRollback(tx.Write)
@@ -45,12 +45,12 @@ func (service *ProductServiceImpl) Create(auth *auth.AccessDetails, request *web
 	err := service.Validate.Struct(request)
 	helper.PanicIfError(err)
 
-	goHelper.SignozSpan("project_template", c)
+	goHelper.SignozSpan("product", c)
 
 	tx := goHelper.CreateTransaction(service.DB, c)
 	defer goHelper.CommitOrRollback(tx.Write)
 
-	city := &domain.Product{
+	product := &domain.Product{
 		// Required Fields
 		CreatedByID: auth.UserID,
 		UpdatedByID: auth.UserID,
@@ -61,13 +61,13 @@ func (service *ProductServiceImpl) Create(auth *auth.AccessDetails, request *web
 		Stock:    request.Stock,
 		Category: request.Category,
 	}
-	city = service.ProductRepository.Create(tx, city)
+	product = service.ProductRepository.Create(tx, product)
 
-	return city.ToProductResponse()
+	return product.ToProductResponse()
 }
 
 func (service *ProductServiceImpl) Delete(auth *auth.AccessDetails, id *int, c *gin.Context) {
-	goHelper.SignozSpan("project_template", c)
+	goHelper.SignozSpan("product", c)
 
 	tx := goHelper.CreateTransaction(service.DB, c)
 	defer goHelper.CommitOrRollback(tx.Write)
@@ -75,7 +75,7 @@ func (service *ProductServiceImpl) Delete(auth *auth.AccessDetails, id *int, c *
 }
 
 func (service *ProductServiceImpl) Update(auth *auth.AccessDetails, id *int, request *web.ProductUpdateRequest, c *gin.Context) web.ProductResponse {
-	goHelper.SignozSpan("project_template", c)
+	goHelper.SignozSpan("product", c)
 
 	tx := goHelper.CreateTransaction(service.DB, c)
 	defer goHelper.CommitOrRollback(tx.Write)
@@ -96,7 +96,7 @@ func (service *ProductServiceImpl) Update(auth *auth.AccessDetails, id *int, req
 }
 
 func (service *ProductServiceImpl) FindByID(auth *auth.AccessDetails, id *int, c *gin.Context) web.ProductResponse {
-	goHelper.SignozSpan("project_template", c)
+	goHelper.SignozSpan("product", c)
 
 	tx := goHelper.CreateTransaction(service.DB, c)
 	defer goHelper.CommitOrRollback(tx.Write)
